@@ -14,7 +14,104 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      payments: {
+        Row: {
+          amount: number
+          competence: string
+          created_at: string
+          due_date: string
+          id: string
+          notes: string | null
+          payment_date: string | null
+          payment_method: string | null
+          person_id: string
+          status: Database["public"]["Enums"]["payment_status"]
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          competence: string
+          created_at?: string
+          due_date: string
+          id?: string
+          notes?: string | null
+          payment_date?: string | null
+          payment_method?: string | null
+          person_id: string
+          status?: Database["public"]["Enums"]["payment_status"]
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          competence?: string
+          created_at?: string
+          due_date?: string
+          id?: string
+          notes?: string | null
+          payment_date?: string | null
+          payment_method?: string | null
+          person_id?: string
+          status?: Database["public"]["Enums"]["payment_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      people: {
+        Row: {
+          address: string | null
+          birth_date: string
+          category: Database["public"]["Enums"]["person_category"]
+          created_at: string
+          due_day: number
+          enrollment_date: string
+          full_name: string
+          guardian_name: string | null
+          id: string
+          notes: string | null
+          phone: string | null
+          status: Database["public"]["Enums"]["person_status"]
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          birth_date: string
+          category: Database["public"]["Enums"]["person_category"]
+          created_at?: string
+          due_day: number
+          enrollment_date?: string
+          full_name: string
+          guardian_name?: string | null
+          id?: string
+          notes?: string | null
+          phone?: string | null
+          status?: Database["public"]["Enums"]["person_status"]
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          birth_date?: string
+          category?: Database["public"]["Enums"]["person_category"]
+          created_at?: string
+          due_day?: number
+          enrollment_date?: string
+          full_name?: string
+          guardian_name?: string | null
+          id?: string
+          notes?: string | null
+          phone?: string | null
+          status?: Database["public"]["Enums"]["person_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +120,9 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      payment_status: "pendente" | "pago" | "atrasado"
+      person_category: "aluno" | "socio" | "metodo"
+      person_status: "ativo" | "inativo"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +249,10 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      payment_status: ["pendente", "pago", "atrasado"],
+      person_category: ["aluno", "socio", "metodo"],
+      person_status: ["ativo", "inativo"],
+    },
   },
 } as const
