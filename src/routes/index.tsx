@@ -44,7 +44,7 @@ function LoginPage() {
           <img
             src={logo}
             alt="R Sports"
-            className="h-14 w-14 rounded-xl object-contain bg-white/10 backdrop-blur p-1.5 shadow-[var(--shadow-glow)]"
+            className="h-14 w-14 rounded-xl object-contain bg-white shadow-[var(--shadow-glow)]"
           />
           <div>
             <div className="font-display font-extrabold text-2xl tracking-tight">R Sports</div>
@@ -71,7 +71,7 @@ function LoginPage() {
             <img
               src={logo}
               alt="R Sports"
-              className="h-12 w-12 rounded-xl object-contain bg-primary p-1.5 shadow-[var(--shadow-elegant)]"
+              className="h-12 w-12 rounded-xl object-contain shadow-[var(--shadow-elegant)]"
             />
             <div className="font-display font-extrabold text-2xl">R Sports</div>
           </div>
