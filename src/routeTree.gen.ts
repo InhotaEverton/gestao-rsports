@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SociosRouteImport } from './routes/socios'
+import { Route as RecebimentosRouteImport } from './routes/recebimentos'
 import { Route as PainelRouteImport } from './routes/painel'
 import { Route as MetodosRouteImport } from './routes/metodos'
 import { Route as MensalidadesRouteImport } from './routes/mensalidades'
@@ -19,6 +20,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const SociosRoute = SociosRouteImport.update({
   id: '/socios',
   path: '/socios',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RecebimentosRoute = RecebimentosRouteImport.update({
+  id: '/recebimentos',
+  path: '/recebimentos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PainelRoute = PainelRouteImport.update({
@@ -53,6 +59,7 @@ export interface FileRoutesByFullPath {
   '/mensalidades': typeof MensalidadesRoute
   '/metodos': typeof MetodosRoute
   '/painel': typeof PainelRoute
+  '/recebimentos': typeof RecebimentosRoute
   '/socios': typeof SociosRoute
 }
 export interface FileRoutesByTo {
@@ -61,6 +68,7 @@ export interface FileRoutesByTo {
   '/mensalidades': typeof MensalidadesRoute
   '/metodos': typeof MetodosRoute
   '/painel': typeof PainelRoute
+  '/recebimentos': typeof RecebimentosRoute
   '/socios': typeof SociosRoute
 }
 export interface FileRoutesById {
@@ -70,6 +78,7 @@ export interface FileRoutesById {
   '/mensalidades': typeof MensalidadesRoute
   '/metodos': typeof MetodosRoute
   '/painel': typeof PainelRoute
+  '/recebimentos': typeof RecebimentosRoute
   '/socios': typeof SociosRoute
 }
 export interface FileRouteTypes {
@@ -80,9 +89,17 @@ export interface FileRouteTypes {
     | '/mensalidades'
     | '/metodos'
     | '/painel'
+    | '/recebimentos'
     | '/socios'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/alunos' | '/mensalidades' | '/metodos' | '/painel' | '/socios'
+  to:
+    | '/'
+    | '/alunos'
+    | '/mensalidades'
+    | '/metodos'
+    | '/painel'
+    | '/recebimentos'
+    | '/socios'
   id:
     | '__root__'
     | '/'
@@ -90,6 +107,7 @@ export interface FileRouteTypes {
     | '/mensalidades'
     | '/metodos'
     | '/painel'
+    | '/recebimentos'
     | '/socios'
   fileRoutesById: FileRoutesById
 }
@@ -99,6 +117,7 @@ export interface RootRouteChildren {
   MensalidadesRoute: typeof MensalidadesRoute
   MetodosRoute: typeof MetodosRoute
   PainelRoute: typeof PainelRoute
+  RecebimentosRoute: typeof RecebimentosRoute
   SociosRoute: typeof SociosRoute
 }
 
@@ -109,6 +128,13 @@ declare module '@tanstack/react-router' {
       path: '/socios'
       fullPath: '/socios'
       preLoaderRoute: typeof SociosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/recebimentos': {
+      id: '/recebimentos'
+      path: '/recebimentos'
+      fullPath: '/recebimentos'
+      preLoaderRoute: typeof RecebimentosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/painel': {
@@ -155,6 +181,7 @@ const rootRouteChildren: RootRouteChildren = {
   MensalidadesRoute: MensalidadesRoute,
   MetodosRoute: MetodosRoute,
   PainelRoute: PainelRoute,
+  RecebimentosRoute: RecebimentosRoute,
   SociosRoute: SociosRoute,
 }
 export const routeTree = rootRouteImport

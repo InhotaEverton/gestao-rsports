@@ -15,6 +15,20 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { brl, competenceLabel, formatDate, todayISO } from "@/lib/format";
+
+const addDaysISO = (n: number) => {
+  const d = new Date();
+  d.setDate(d.getDate() + n);
+  return d.toISOString().slice(0, 10);
+};
+const monthStartISO = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`;
+};
+const monthEndISO = () => {
+  const d = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0);
+  return d.toISOString().slice(0, 10);
+};
 import { Loader2, CheckCircle2, Plus, Filter } from "lucide-react";
 import { toast } from "sonner";
 
@@ -185,21 +199,79 @@ function PaymentsPage() {
         <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
           <Filter className="h-4 w-4" /> Filtros
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+
+        {/* Categoria - chips */}
+        <div className="space-y-2">
+          <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Categoria</div>
+          <div className="flex flex-wrap gap-2">
+            {([
+              { v: "todas", label: "Todas" },
+              { v: "aluno", label: "Alunos" },
+              { v: "socio", label: "Sócios" },
+              { v: "metodo", label: "Métodos" },
+            ] as const).map((c) => (
+              <button
+                key={c.v}
+                type="button"
+                onClick={() => setCategoryFilter(c.v as typeof categoryFilter)}
+                className={
+                  "px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors " +
+                  (categoryFilter === c.v
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-background border-border text-foreground/70 hover:bg-muted")
+                }
+              >
+                {c.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Período - chips rápidos */}
+        <div className="space-y-2">
+          <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Período (vencimento)</div>
+          <div className="flex flex-wrap gap-2">
+            {([
+              { v: "all", label: "Todo período" },
+              { v: "today", label: "Hoje" },
+              { v: "7d", label: "Próx. 7 dias" },
+              { v: "month", label: "Este mês" },
+            ] as const).map((p) => {
+              const active =
+                (p.v === "all" && !periodFrom && !periodTo) ||
+                (p.v === "today" && periodFrom === todayISO() && periodTo === todayISO()) ||
+                (p.v === "7d" && periodFrom === todayISO() && periodTo === addDaysISO(7)) ||
+                (p.v === "month" && periodFrom === monthStartISO() && periodTo === monthEndISO());
+              return (
+                <button
+                  key={p.v}
+                  type="button"
+                  onClick={() => {
+                    if (p.v === "all") { setPeriodFrom(""); setPeriodTo(""); }
+                    else if (p.v === "today") { setPeriodFrom(todayISO()); setPeriodTo(todayISO()); }
+                    else if (p.v === "7d") { setPeriodFrom(todayISO()); setPeriodTo(addDaysISO(7)); }
+                    else if (p.v === "month") { setPeriodFrom(monthStartISO()); setPeriodTo(monthEndISO()); }
+                  }}
+                  className={
+                    "px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors " +
+                    (active
+                      ? "bg-accent text-accent-foreground border-accent"
+                      : "bg-background border-border text-foreground/70 hover:bg-muted")
+                  }
+                >
+                  {p.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <Input
             placeholder="Buscar nome..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          <Select value={categoryFilter} onValueChange={(v) => setCategoryFilter(v as typeof categoryFilter)}>
-            <SelectTrigger><SelectValue placeholder="Categoria" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todas">Todas categorias</SelectItem>
-              <SelectItem value="aluno">Alunos</SelectItem>
-              <SelectItem value="socio">Sócios</SelectItem>
-              <SelectItem value="metodo">Métodos</SelectItem>
-            </SelectContent>
-          </Select>
           <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as FilterStatus)}>
             <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
             <SelectContent>
