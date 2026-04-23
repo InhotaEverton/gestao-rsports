@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import logo from "@/assets/logo.png";
 
 export const Route = createFileRoute("/")({
   component: LoginPage,
@@ -40,9 +41,11 @@ function LoginPage() {
       {/* Brand panel */}
       <div className="hidden lg:flex relative overflow-hidden bg-[image:var(--gradient-brand)] text-primary-foreground p-12 flex-col justify-between">
         <div className="flex items-center gap-3">
-          <div className="h-12 w-12 rounded-xl bg-accent text-accent-foreground flex items-center justify-center font-display font-extrabold text-2xl shadow-[var(--shadow-glow)]">
-            R
-          </div>
+          <img
+            src={logo}
+            alt="R Sports"
+            className="h-14 w-14 rounded-xl object-contain bg-white/10 backdrop-blur p-1.5 shadow-[var(--shadow-glow)]"
+          />
           <div>
             <div className="font-display font-extrabold text-2xl tracking-tight">R Sports</div>
             <div className="text-xs opacity-80 uppercase tracking-widest">Football Society</div>
@@ -65,9 +68,11 @@ function LoginPage() {
       <div className="flex items-center justify-center p-6 sm:p-12">
         <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-6">
           <div className="lg:hidden flex items-center gap-3 mb-8">
-            <div className="h-12 w-12 rounded-xl bg-[image:var(--gradient-brand)] text-primary-foreground flex items-center justify-center font-display font-extrabold text-2xl">
-              R
-            </div>
+            <img
+              src={logo}
+              alt="R Sports"
+              className="h-12 w-12 rounded-xl object-contain bg-primary p-1.5 shadow-[var(--shadow-elegant)]"
+            />
             <div className="font-display font-extrabold text-2xl">R Sports</div>
           </div>
           <div>
