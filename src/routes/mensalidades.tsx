@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ProtectedLayout } from "@/components/ProtectedLayout";
 import { PageHeader, PaymentStatusBadge } from "@/components/PeopleManager";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Person, Payment, PersonCategory, PaymentStatus } from "@/lib/types";
 import { CATEGORY_LABELS, MONTHLY_FEE } from "@/lib/types";
@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { brl, competenceLabel, formatDate, todayISO } from "@/lib/format";
+import { usePeople, usePayments, useInvalidateData } from "@/lib/queries";
 
 const addDaysISO = (n: number) => {
   const d = new Date();
@@ -43,9 +44,10 @@ export const Route = createFileRoute("/mensalidades")({
 type FilterStatus = "todos" | PaymentStatus | "recebidos_hoje" | "vencendo";
 
 function PaymentsPage() {
-  const [people, setPeople] = useState<Person[]>([]);
-  const [payments, setPayments] = useState<Payment[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: people = [], isLoading: l1 } = usePeople();
+  const { data: payments = [], isLoading: l2 } = usePayments();
+  const { invalidatePayments } = useInvalidateData();
+  const loading = l1 || l2;
   const [categoryFilter, setCategoryFilter] = useState<"todas" | PersonCategory>("todas");
   const [statusFilter, setStatusFilter] = useState<FilterStatus>("todos");
   const [search, setSearch] = useState("");
@@ -65,19 +67,6 @@ function PaymentsPage() {
   });
   const [genCategory, setGenCategory] = useState<"todas" | PersonCategory>("todas");
   const [generating, setGenerating] = useState(false);
-
-  const load = async () => {
-    setLoading(true);
-    const [{ data: ppl }, { data: pays }] = await Promise.all([
-      supabase.from("people").select("*"),
-      supabase.from("payments").select("*").order("due_date", { ascending: false }),
-    ]);
-    setPeople((ppl ?? []) as Person[]);
-    setPayments((pays ?? []) as Payment[]);
-    setLoading(false);
-  };
-
-  useEffect(() => { void load(); }, []);
 
   const personById = useMemo(() => {
     const m = new Map<string, Person>();
@@ -144,7 +133,7 @@ function PaymentsPage() {
     else {
       toast.success("Pagamento registrado");
       setPaying(null);
-      await load();
+      invalidatePayments();
     }
   };
 
@@ -182,7 +171,7 @@ function PaymentsPage() {
     else {
       toast.success(`${rows.length} mensalidade(s) geradas`);
       setGenOpen(false);
-      await load();
+      invalidatePayments();
     }
   };
 

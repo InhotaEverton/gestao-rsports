@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import type { Person, PersonCategory, PersonStatus, Payment } from "@/lib/types";
+import type { Person, PersonCategory, PersonStatus } from "@/lib/types";
 import { CATEGORY_LABELS, MONTHLY_FEE } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +19,7 @@ import { Card } from "@/components/ui/card";
 import { calcAge, formatDate, brl, competenceLabel, todayISO } from "@/lib/format";
 import { Plus, Search, Pencil, Trash2, Receipt, Loader2, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
+import { usePeopleByCategory, usePaymentsOfPerson, useInvalidateData } from "@/lib/queries";
 
 interface Props {
   category: PersonCategory;
@@ -40,8 +41,8 @@ const emptyForm = (cat: PersonCategory) => ({
 });
 
 export function PeopleManager({ category, title, description }: Props) {
-  const [people, setPeople] = useState<Person[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: people = [], isLoading: loading } = usePeopleByCategory(category);
+  const { invalidatePeople, invalidatePayments } = useInvalidateData();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"todos" | PersonStatus>("todos");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -50,27 +51,15 @@ export function PeopleManager({ category, title, description }: Props) {
   const [saving, setSaving] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [paymentsOf, setPaymentsOf] = useState<Person | null>(null);
-  const [personPayments, setPersonPayments] = useState<Payment[]>([]);
-  const [loadingPayments, setLoadingPayments] = useState(false);
+
+  const { data: personPayments = [], isLoading: loadingPayments } = usePaymentsOfPerson(
+    paymentsOf?.id ?? null,
+  );
 
   const showsGuardian = category !== "socio";
 
-  const load = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from("people")
-      .select("*")
-      .eq("category", category)
-      .order("full_name");
-    if (error) toast.error(error.message);
-    else setPeople((data ?? []) as Person[]);
-    setLoading(false);
-  };
-
   useEffect(() => {
-    void load();
     setForm(emptyForm(category));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [category]);
 
   const filtered = useMemo(() => {
@@ -138,7 +127,7 @@ export function PeopleManager({ category, title, description }: Props) {
     }
     setSaving(false);
     setDialogOpen(false);
-    await load();
+    invalidatePeople();
   };
 
   const handleDelete = async () => {
@@ -147,20 +136,12 @@ export function PeopleManager({ category, title, description }: Props) {
     if (error) toast.error(error.message);
     else toast.success("Cadastro excluído");
     setDeleteId(null);
-    await load();
+    invalidatePeople();
+    invalidatePayments();
   };
 
-  const openPayments = async (p: Person) => {
+  const openPayments = (p: Person) => {
     setPaymentsOf(p);
-    setLoadingPayments(true);
-    const { data, error } = await supabase
-      .from("payments")
-      .select("*")
-      .eq("person_id", p.id)
-      .order("due_date", { ascending: false });
-    if (error) toast.error(error.message);
-    else setPersonPayments((data ?? []) as Payment[]);
-    setLoadingPayments(false);
   };
 
   const generateMonthly = async () => {
@@ -184,7 +165,7 @@ export function PeopleManager({ category, title, description }: Props) {
     if (error) toast.error(error.message);
     else {
       toast.success("Mensalidade gerada");
-      void openPayments(paymentsOf);
+      invalidatePayments();
     }
   };
 
@@ -196,7 +177,7 @@ export function PeopleManager({ category, title, description }: Props) {
     if (error) toast.error(error.message);
     else {
       toast.success("Pagamento registrado");
-      if (paymentsOf) void openPayments(paymentsOf);
+      invalidatePayments();
     }
   };
 
