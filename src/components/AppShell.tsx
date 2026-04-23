@@ -4,6 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { LayoutDashboard, Users, Trophy, Shield, Wallet, LogOut, Menu, X, Receipt } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import logo from "@/assets/logo.png";
 
 const navItems = [
   { to: "/painel", label: "Painel", icon: LayoutDashboard },
@@ -69,9 +70,11 @@ export function AppShell({ children }: { children: ReactNode }) {
 function BrandMark() {
   return (
     <div className="flex items-center gap-2">
-      <div className="h-9 w-9 rounded-lg bg-[image:var(--gradient-brand)] flex items-center justify-center text-primary-foreground font-display font-extrabold shadow-[var(--shadow-elegant)]">
-        R
-      </div>
+      <img
+        src={logo}
+        alt="R Sports"
+        className="h-10 w-10 rounded-lg object-contain bg-primary p-1 shadow-[var(--shadow-elegant)]"
+      />
       <div className="leading-tight">
         <div className="font-display font-extrabold text-base">R Sports</div>
         <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Gestão</div>
