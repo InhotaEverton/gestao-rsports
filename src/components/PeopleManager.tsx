@@ -127,7 +127,7 @@ export function PeopleManager({ category, title, description }: Props) {
     }
     setSaving(false);
     setDialogOpen(false);
-    await load();
+    invalidatePeople();
   };
 
   const handleDelete = async () => {
@@ -136,20 +136,12 @@ export function PeopleManager({ category, title, description }: Props) {
     if (error) toast.error(error.message);
     else toast.success("Cadastro excluído");
     setDeleteId(null);
-    await load();
+    invalidatePeople();
+    invalidatePayments();
   };
 
-  const openPayments = async (p: Person) => {
+  const openPayments = (p: Person) => {
     setPaymentsOf(p);
-    setLoadingPayments(true);
-    const { data, error } = await supabase
-      .from("payments")
-      .select("*")
-      .eq("person_id", p.id)
-      .order("due_date", { ascending: false });
-    if (error) toast.error(error.message);
-    else setPersonPayments((data ?? []) as Payment[]);
-    setLoadingPayments(false);
   };
 
   const generateMonthly = async () => {
@@ -173,7 +165,7 @@ export function PeopleManager({ category, title, description }: Props) {
     if (error) toast.error(error.message);
     else {
       toast.success("Mensalidade gerada");
-      void openPayments(paymentsOf);
+      invalidatePayments();
     }
   };
 
@@ -185,7 +177,7 @@ export function PeopleManager({ category, title, description }: Props) {
     if (error) toast.error(error.message);
     else {
       toast.success("Pagamento registrado");
-      if (paymentsOf) void openPayments(paymentsOf);
+      invalidatePayments();
     }
   };
 
