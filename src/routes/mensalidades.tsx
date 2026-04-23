@@ -3,7 +3,7 @@ import { ProtectedLayout } from "@/components/ProtectedLayout";
 import { PageHeader, PaymentStatusBadge } from "@/components/PeopleManager";
 import { useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import type { Payment, PersonCategory, PaymentStatus } from "@/lib/types";
+import type { Person, Payment, PersonCategory, PaymentStatus } from "@/lib/types";
 import { CATEGORY_LABELS, MONTHLY_FEE } from "@/lib/types";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -133,7 +133,7 @@ function PaymentsPage() {
     else {
       toast.success("Pagamento registrado");
       setPaying(null);
-      await load();
+      invalidatePayments();
     }
   };
 
@@ -171,7 +171,7 @@ function PaymentsPage() {
     else {
       toast.success(`${rows.length} mensalidade(s) geradas`);
       setGenOpen(false);
-      await load();
+      invalidatePayments();
     }
   };
 
