@@ -73,7 +73,7 @@ function BrandMark() {
       <img
         src={logo}
         alt="R Sports"
-        className="h-10 w-10 rounded-lg object-contain bg-primary p-1 shadow-[var(--shadow-elegant)]"
+        className="h-10 w-10 rounded-lg object-contain shadow-[var(--shadow-elegant)]"
       />
       <div className="leading-tight">
         <div className="font-display font-extrabold text-base">R Sports</div>
