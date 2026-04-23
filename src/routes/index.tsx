@@ -25,17 +25,14 @@ function LoginPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setTimeout(() => {
-      const ok = login(user.trim(), pass);
+    const ok = login(user.trim(), pass);
+    if (ok) {
+      toast.success("Bem-vindo!");
+      navigate({ to: "/painel" });
+    } else {
+      toast.error("Usuário ou senha inválidos");
       setLoading(false);
-      if (ok) {
-        toast.success("Bem-vindo!");
-        navigate({ to: "/painel" });
-      } else {
-        toast.error("Usuário ou senha inválidos");
-      }
-    }, 300);
+    }
   };
 
   return (

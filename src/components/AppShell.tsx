@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
-import { LayoutDashboard, Users, Trophy, Shield, Wallet, LogOut, Menu, X } from "lucide-react";
+import { LayoutDashboard, Users, Trophy, Shield, Wallet, LogOut, Menu, X, Receipt } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -11,6 +11,7 @@ const navItems = [
   { to: "/socios", label: "Sócios", icon: Shield },
   { to: "/metodos", label: "Métodos", icon: Trophy },
   { to: "/mensalidades", label: "Mensalidades", icon: Wallet },
+  { to: "/recebimentos", label: "Recebimentos", icon: Receipt },
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
