@@ -1,8 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ProtectedLayout } from "@/components/ProtectedLayout";
 import { PageHeader } from "@/components/PeopleManager";
-import { useEffect, useMemo, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useMemo } from "react";
 import type { Person, Payment } from "@/lib/types";
 import { CATEGORY_LABELS } from "@/lib/types";
 import { Card } from "@/components/ui/card";
@@ -10,6 +9,7 @@ import { brl, calcAge, formatDate, isBirthdayToday, todayISO } from "@/lib/forma
 import {
   Wallet, Receipt, AlertTriangle, Clock, Cake, Users, Shield, Trophy, Loader2,
 } from "lucide-react";
+import { usePeople, usePayments } from "@/lib/queries";
 
 export const Route = createFileRoute("/painel")({
   component: () => (
@@ -20,22 +20,9 @@ export const Route = createFileRoute("/painel")({
 });
 
 function Dashboard() {
-  const [people, setPeople] = useState<Person[]>([]);
-  const [payments, setPayments] = useState<Payment[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    void (async () => {
-      setLoading(true);
-      const [{ data: ppl }, { data: pays }] = await Promise.all([
-        supabase.from("people").select("*"),
-        supabase.from("payments").select("*"),
-      ]);
-      setPeople((ppl ?? []) as Person[]);
-      setPayments((pays ?? []) as Payment[]);
-      setLoading(false);
-    })();
-  }, []);
+  const { data: people = [], isLoading: l1 } = usePeople();
+  const { data: payments = [], isLoading: l2 } = usePayments();
+  const loading = l1 || l2;
 
   const stats = useMemo(() => {
     const today = todayISO();
