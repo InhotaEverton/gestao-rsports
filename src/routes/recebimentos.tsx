@@ -3,6 +3,7 @@ import { ProtectedLayout } from "@/components/ProtectedLayout";
 import { PageHeader, PaymentStatusBadge } from "@/components/PeopleManager";
 import { useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import type { Person } from "@/lib/types";
 import { CATEGORY_LABELS } from "@/lib/types";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -113,7 +114,7 @@ function DailyReceiptsPage() {
     }
     toast.success(`${ids.length} recebimento(s) registrados`);
     setSelected(new Set());
-    await load();
+    invalidatePayments();
   };
 
   return (
