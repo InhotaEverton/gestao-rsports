@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import logo from "@/assets/logo.png";
+import fieldBg from "@/assets/field-bg.jpg";
 
 export const Route = createFileRoute("/")({
   component: LoginPage,
@@ -37,9 +38,12 @@ function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen grid lg:grid-cols-2 bg-background">
+    <div
+      className="min-h-screen grid lg:grid-cols-2 bg-background bg-cover bg-center"
+      style={{ backgroundImage: `url(${fieldBg})` }}
+    >
       {/* Brand panel */}
-      <div className="hidden lg:flex relative overflow-hidden bg-[image:var(--gradient-brand)] text-primary-foreground p-12 flex-col justify-between">
+      <div className="hidden lg:flex relative overflow-hidden bg-[image:var(--gradient-brand)]/90 backdrop-blur-sm text-primary-foreground p-12 flex-col justify-between">
         <div className="flex items-center gap-3">
           <img
             src={logo}
@@ -65,7 +69,7 @@ function LoginPage() {
       </div>
 
       {/* Form */}
-      <div className="flex items-center justify-center p-6 sm:p-12">
+      <div className="flex items-center justify-center p-6 sm:p-12 bg-background/80 backdrop-blur-md">
         <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-6">
           <div className="lg:hidden flex items-center gap-3 mb-8">
             <img
