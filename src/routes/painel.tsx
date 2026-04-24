@@ -7,7 +7,7 @@ import { CATEGORY_LABELS } from "@/lib/types";
 import { Card } from "@/components/ui/card";
 import { brl, calcAge, formatDate, isBirthdayToday, todayISO } from "@/lib/format";
 import {
-  Wallet, Receipt, AlertTriangle, Clock, Cake, Users, Shield, Trophy, Loader2,
+  Wallet, Receipt, AlertTriangle, Clock, Cake, Users, Shield, Trophy,
 } from "lucide-react";
 import { usePeople, usePayments } from "@/lib/queries";
 
