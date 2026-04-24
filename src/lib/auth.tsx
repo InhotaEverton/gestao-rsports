@@ -14,15 +14,18 @@ interface AuthCtx {
 const Ctx = createContext<AuthCtx | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [isAuthenticated, setAuth] = useState(false);
-  const [ready, setReady] = useState(false);
+  const [isAuthenticated, setAuth] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem(AUTH_KEY) === "1";
+  });
+  const [ready, setReady] = useState<boolean>(typeof window !== "undefined");
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    if (typeof window !== "undefined" && !ready) {
       setAuth(localStorage.getItem(AUTH_KEY) === "1");
       setReady(true);
     }
-  }, []);
+  }, [ready]);
 
   const login = (user: string, pass: string) => {
     if (user === VALID_USER && pass === VALID_PASS) {

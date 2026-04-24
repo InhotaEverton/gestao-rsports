@@ -42,7 +42,7 @@ function LoginPage() {
       className="min-h-screen grid lg:grid-cols-2 bg-background bg-cover bg-center"
       style={{ backgroundImage: `url(${fieldBg})` }}
     >
-      {/* Brand panel */}
+      {/* Brand panel - desktop */}
       <div className="hidden lg:flex relative overflow-hidden bg-[image:var(--gradient-brand)]/60 backdrop-blur-[2px] text-primary-foreground p-12 flex-col justify-between">
         <div className="flex items-center gap-3">
           <img
@@ -52,7 +52,7 @@ function LoginPage() {
           />
           <div>
             <div className="font-display font-extrabold text-2xl tracking-tight">R Sports</div>
-            <div className="text-xs opacity-80 uppercase tracking-widest">Football Society</div>
+            <div className="text-xs opacity-80 uppercase tracking-widest">Gestão Interna</div>
           </div>
         </div>
         <div>
@@ -69,13 +69,15 @@ function LoginPage() {
       </div>
 
       {/* Form */}
-      <div className="flex items-center justify-center p-6 sm:p-12 bg-background/60 backdrop-blur-sm">
-        <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-6">
-          <div className="lg:hidden flex items-center gap-3 mb-8">
+      <div className="relative flex items-center justify-center p-6 sm:p-12 bg-background/60 backdrop-blur-sm lg:bg-background/60">
+        {/* Mobile overlay tint to keep form readable over field image */}
+        <div className="absolute inset-0 lg:hidden bg-[image:var(--gradient-brand)]/40 pointer-events-none" />
+        <form onSubmit={handleSubmit} className="relative w-full max-w-sm space-y-6 lg:bg-transparent bg-card/85 backdrop-blur-md p-6 rounded-2xl lg:p-0 lg:rounded-none shadow-[var(--shadow-elegant)] lg:shadow-none">
+          <div className="lg:hidden flex items-center gap-3 mb-4 justify-center">
             <img
               src={logo}
               alt="R Sports"
-              className="h-12 w-12 rounded-xl object-contain shadow-[var(--shadow-elegant)]"
+              className="h-14 w-14 rounded-xl object-contain shadow-[var(--shadow-elegant)]"
             />
             <div className="font-display font-extrabold text-2xl">R Sports</div>
           </div>
