@@ -43,7 +43,7 @@ function LoginPage() {
       style={{ backgroundImage: `url(${fieldBg})` }}
     >
       {/* Brand panel */}
-      <div className="hidden lg:flex relative overflow-hidden bg-[image:var(--gradient-brand)]/90 backdrop-blur-sm text-primary-foreground p-12 flex-col justify-between">
+      <div className="hidden lg:flex relative overflow-hidden bg-[image:var(--gradient-brand)]/60 backdrop-blur-[2px] text-primary-foreground p-12 flex-col justify-between">
         <div className="flex items-center gap-3">
           <img
             src={logo}
@@ -69,7 +69,7 @@ function LoginPage() {
       </div>
 
       {/* Form */}
-      <div className="flex items-center justify-center p-6 sm:p-12 bg-background/80 backdrop-blur-md">
+      <div className="flex items-center justify-center p-6 sm:p-12 bg-background/60 backdrop-blur-sm">
         <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-6">
           <div className="lg:hidden flex items-center gap-3 mb-8">
             <img
