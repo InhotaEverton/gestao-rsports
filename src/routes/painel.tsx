@@ -20,9 +20,8 @@ export const Route = createFileRoute("/painel")({
 });
 
 function Dashboard() {
-  const { data: people = [], isLoading: l1 } = usePeople();
-  const { data: payments = [], isLoading: l2 } = usePayments();
-  const loading = l1 || l2;
+  const { data: people = [] } = usePeople();
+  const { data: payments = [] } = usePayments();
 
   const stats = useMemo(() => {
     const today = todayISO();
@@ -50,14 +49,6 @@ function Dashboard() {
       activeMetodos: activeBy("metodo"),
     };
   }, [people, payments]);
-
-  if (loading) {
-    return (
-      <div className="py-20 flex justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
