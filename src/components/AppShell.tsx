@@ -5,6 +5,7 @@ import { LayoutDashboard, Users, Trophy, Shield, Wallet, LogOut, Menu, X, Receip
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import logo from "@/assets/logo.png";
+import fieldBg from "@/assets/field-bg.jpg";
 
 const navItems = [
   { to: "/painel", label: "Painel", icon: LayoutDashboard },
@@ -27,9 +28,12 @@ export function AppShell({ children }: { children: ReactNode }) {
   };
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div
+      className="min-h-screen bg-background bg-cover bg-center bg-fixed flex"
+      style={{ backgroundImage: `url(${fieldBg})` }}
+    >
       {/* Sidebar - desktop */}
-      <aside className="hidden lg:flex w-64 flex-col border-r border-border bg-card">
+      <aside className="hidden lg:flex w-64 flex-col border-r border-border bg-card/85 backdrop-blur-md">
         <SidebarContent onNavigate={() => {}} currentPath={location.pathname} onLogout={handleLogout} />
       </aside>
 
@@ -37,7 +41,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       {open && (
         <div className="lg:hidden fixed inset-0 z-40">
           <div className="absolute inset-0 bg-foreground/40" onClick={() => setOpen(false)} />
-          <aside className="absolute left-0 top-0 h-full w-72 bg-card border-r border-border flex flex-col animate-in slide-in-from-left">
+          <aside className="absolute left-0 top-0 h-full w-72 bg-card/95 backdrop-blur-md border-r border-border flex flex-col animate-in slide-in-from-left">
             <SidebarContent
               onNavigate={() => setOpen(false)}
               currentPath={location.pathname}
@@ -47,7 +51,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       )}
 
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 bg-background/75 backdrop-blur-sm">
         {/* Mobile topbar */}
         <header className="lg:hidden sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-border bg-card/80 backdrop-blur px-4 py-3">
           <Button variant="ghost" size="icon" onClick={() => setOpen(true)} aria-label="Abrir menu">
