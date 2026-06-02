@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { useHydrated } from "@tanstack/react-router";
 
 const AUTH_KEY = "rsports_auth";
 const VALID_USER = "Admin";
@@ -14,18 +15,14 @@ interface AuthCtx {
 const Ctx = createContext<AuthCtx | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [isAuthenticated, setAuth] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false;
-    return localStorage.getItem(AUTH_KEY) === "1";
-  });
-  const [ready, setReady] = useState<boolean>(typeof window !== "undefined");
+  const hydrated = useHydrated();
+  const [isAuthenticated, setAuth] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== "undefined" && !ready) {
+    if (hydrated) {
       setAuth(localStorage.getItem(AUTH_KEY) === "1");
-      setReady(true);
     }
-  }, [ready]);
+  }, [hydrated]);
 
   const login = (user: string, pass: string) => {
     if (user === VALID_USER && pass === VALID_PASS) {
@@ -41,7 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setAuth(false);
   };
 
-  return <Ctx.Provider value={{ isAuthenticated, login, logout, ready }}>{children}</Ctx.Provider>;
+  return <Ctx.Provider value={{ isAuthenticated, login, logout, ready: hydrated }}>{children}</Ctx.Provider>;
 }
 
 export function useAuth() {
