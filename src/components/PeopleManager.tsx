@@ -20,6 +20,8 @@ import { calcAge, formatDate, brl, competenceLabel, todayISO } from "@/lib/forma
 import { Plus, Search, Pencil, Trash2, Receipt, Loader2, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { usePeopleByCategory, usePaymentsOfPerson, useInvalidateData } from "@/lib/queries";
+import { PaginationBar, usePagination } from "@/components/Pagination";
+import { TableSkeleton } from "@/components/Skeletons";
 
 interface Props {
   category: PersonCategory;
@@ -76,6 +78,8 @@ export function PeopleManager({ category, title, description }: Props) {
       return true;
     });
   }, [people, search, statusFilter]);
+
+  const pag = usePagination(filtered, 20);
 
   const openCreate = () => {
     setEditing(null);
@@ -215,9 +219,7 @@ export function PeopleManager({ category, title, description }: Props) {
 
       <Card className="overflow-hidden">
         {loading ? (
-          <div className="p-12 flex items-center justify-center">
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-          </div>
+          <TableSkeleton rows={6} cols={showsGuardian ? 7 : 6} />
         ) : filtered.length === 0 ? (
           <div className="p-12 text-center text-muted-foreground text-sm">
             Nenhum registro encontrado.
@@ -239,7 +241,7 @@ export function PeopleManager({ category, title, description }: Props) {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((p) => (
+                  {pag.pageItems.map((p) => (
                     <tr key={p.id} className="border-t border-border hover:bg-muted/30">
                       <td className="px-4 py-3 font-medium">{p.full_name}</td>
                       <td className="px-4 py-3">{calcAge(p.birth_date)} anos</td>
@@ -268,7 +270,7 @@ export function PeopleManager({ category, title, description }: Props) {
 
             {/* Mobile cards */}
             <div className="md:hidden divide-y divide-border">
-              {filtered.map((p) => (
+              {pag.pageItems.map((p) => (
                 <div key={p.id} className="p-4 space-y-2">
                   <div className="flex items-start justify-between gap-2">
                     <div>
@@ -295,6 +297,15 @@ export function PeopleManager({ category, title, description }: Props) {
                 </div>
               ))}
             </div>
+
+            <PaginationBar
+              page={pag.page}
+              totalPages={pag.totalPages}
+              from={pag.from}
+              to={pag.to}
+              total={pag.total}
+              onPage={pag.setPage}
+            />
           </>
         )}
       </Card>

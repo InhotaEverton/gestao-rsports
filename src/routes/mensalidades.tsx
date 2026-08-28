@@ -2,6 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { ProtectedLayout } from "@/components/ProtectedLayout";
 import { PageHeader, PaymentStatusBadge } from "@/components/PeopleManager";
 import { useMemo, useState } from "react";
+import { PaginationBar, usePagination } from "@/components/Pagination";
+import { TableSkeleton } from "@/components/Skeletons";
 import { supabase } from "@/integrations/supabase/client";
 import type { Person, Payment, PersonCategory, PaymentStatus } from "@/lib/types";
 import { CATEGORY_LABELS } from "@/lib/types";
@@ -212,6 +214,8 @@ function PaymentsPage() {
     });
   }, [payments, personById, categoryFilter, statusFilter, search, periodFrom, periodTo]);
 
+  const pag = usePagination(filtered, 20);
+
   const totalReceived = filtered
     .filter((p) => p.status === "pago")
     .reduce((s, p) => s + Number(p.amount), 0);
@@ -399,7 +403,7 @@ function PaymentsPage() {
 
       <Card className="overflow-hidden">
         {loading ? (
-          <div className="p-12 flex justify-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+          <TableSkeleton rows={7} cols={8} />
         ) : filtered.length === 0 ? (
           <div className="p-12 text-center text-sm text-muted-foreground">Nenhuma mensalidade encontrada.</div>
         ) : (
@@ -419,7 +423,7 @@ function PaymentsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((pay) => {
+                  {pag.pageItems.map((pay) => {
                     const person = personById.get(pay.person_id);
                     return (
                       <tr key={pay.id} className="border-t border-border hover:bg-muted/30">
@@ -451,7 +455,7 @@ function PaymentsPage() {
               </table>
             </div>
             <div className="md:hidden divide-y divide-border">
-              {filtered.map((pay) => {
+              {pag.pageItems.map((pay) => {
                 const person = personById.get(pay.person_id);
                 return (
                   <div key={pay.id} className="p-4 space-y-2">
