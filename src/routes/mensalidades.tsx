@@ -486,7 +486,17 @@ function PaymentsPage() {
                 );
               })}
             </div>
+
+            <PaginationBar
+              page={pag.page}
+              totalPages={pag.totalPages}
+              from={pag.from}
+              to={pag.to}
+              total={pag.total}
+              onPage={pag.setPage}
+            />
           </>
+
         )}
       </Card>
 
