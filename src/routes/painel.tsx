@@ -10,6 +10,11 @@ import {
   Wallet, Receipt, AlertTriangle, Clock, Cake, Users, Shield, Trophy,
 } from "lucide-react";
 import { usePeople, usePayments } from "@/lib/queries";
+import { StatsSkeleton } from "@/components/Skeletons";
+import {
+  ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid,
+  PieChart, Pie, Cell, Legend,
+} from "recharts";
 
 export const Route = createFileRoute("/painel")({
   component: () => (
@@ -20,8 +25,9 @@ export const Route = createFileRoute("/painel")({
 });
 
 function Dashboard() {
-  const { data: people = [] } = usePeople();
-  const { data: payments = [] } = usePayments();
+  const { data: people = [], isLoading: loadingPeople } = usePeople();
+  const { data: payments = [], isLoading: loadingPayments } = usePayments();
+  const loading = loadingPeople || loadingPayments;
 
   const stats = useMemo(() => {
     const today = todayISO();
@@ -49,6 +55,50 @@ function Dashboard() {
       activeMetodos: activeBy("metodo"),
     };
   }, [people, payments]);
+
+  const charts = useMemo(() => {
+    const months: { key: string; label: string }[] = [];
+    const base = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(base.getFullYear(), base.getMonth() - i, 1);
+      months.push({
+        key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`,
+        label: d.toLocaleDateString("pt-BR", { month: "short" }).replace(".", ""),
+      });
+    }
+    const revenue = months.map((m) => {
+      const recebido = payments
+        .filter((p) => p.competence === m.key && p.status === "pago")
+        .reduce((s, p) => s + Number(p.amount), 0);
+      const pendente = payments
+        .filter((p) => p.competence === m.key && p.status !== "pago")
+        .reduce((s, p) => s + Number(p.amount), 0);
+      return { mes: m.label, Recebido: recebido, Pendente: pendente };
+    });
+
+    const today = todayISO();
+    const pagos = payments.filter((p) => p.status === "pago").length;
+    const atrasados = payments.filter((p) => p.status !== "pago" && p.due_date < today).length;
+    const pendentes = payments.length - pagos - atrasados;
+    const statusData = [
+      { name: "Pagas", value: pagos, color: "hsl(var(--success))" },
+      { name: "Pendentes", value: pendentes, color: "hsl(var(--primary))" },
+      { name: "Vencidas", value: atrasados, color: "hsl(var(--destructive))" },
+    ].filter((d) => d.value > 0);
+
+    return { revenue, statusData };
+  }, [payments]);
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <PageHeader title="Painel" description="Visão geral da operação do dia." />
+        <StatsSkeleton />
+        <StatsSkeleton count={3} />
+        <div className="h-64 rounded-xl bg-muted animate-pulse" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -84,6 +134,73 @@ function Dashboard() {
         <CountCard label="Alunos ativos" value={stats.activeAlunos} icon={Users} to="/alunos" />
         <CountCard label="Sócios ativos" value={stats.activeSocios} icon={Shield} to="/socios" />
         <CountCard label="Métodos ativos" value={stats.activeMetodos} icon={Trophy} to="/metodos" />
+      </div>
+
+      {/* Charts */}
+      <div className="grid gap-4 lg:grid-cols-3">
+        <Card className="p-5 lg:col-span-2">
+          <h2 className="font-display font-bold text-lg mb-1">Receita por competência</h2>
+          <p className="text-xs text-muted-foreground mb-4">Últimos 6 meses</p>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={charts.revenue}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                <XAxis dataKey="mes" tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
+                <YAxis tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" width={60} />
+                <Tooltip
+                  formatter={(v: number) => brl(Number(v))}
+                  contentStyle={{
+                    background: "hsl(var(--card))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: 8,
+                    fontSize: 12,
+                  }}
+                />
+                <Legend wrapperStyle={{ fontSize: 12 }} />
+                <Bar dataKey="Recebido" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="Pendente" fill="hsl(var(--muted-foreground))" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </Card>
+
+        <Card className="p-5">
+          <h2 className="font-display font-bold text-lg mb-1">Situação das mensalidades</h2>
+          <p className="text-xs text-muted-foreground mb-4">Total geral</p>
+          <div className="h-64">
+            {charts.statusData.length === 0 ? (
+              <div className="h-full flex items-center justify-center text-sm text-muted-foreground">
+                Sem mensalidades cadastradas.
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={charts.statusData}
+                    dataKey="value"
+                    nameKey="name"
+                    innerRadius={55}
+                    outerRadius={85}
+                    paddingAngle={3}
+                  >
+                    {charts.statusData.map((d) => (
+                      <Cell key={d.name} fill={d.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{
+                      background: "hsl(var(--card))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: 8,
+                      fontSize: 12,
+                    }}
+                  />
+                  <Legend wrapperStyle={{ fontSize: 12 }} />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </Card>
       </div>
 
       {/* Birthdays */}
