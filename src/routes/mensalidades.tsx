@@ -4,7 +4,7 @@ import { PageHeader, PaymentStatusBadge } from "@/components/PeopleManager";
 import { useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Person, Payment, PersonCategory, PaymentStatus } from "@/lib/types";
-import { CATEGORY_LABELS, MONTHLY_FEE } from "@/lib/types";
+import { CATEGORY_LABELS } from "@/lib/types";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
