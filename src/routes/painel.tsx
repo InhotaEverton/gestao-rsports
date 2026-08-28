@@ -81,9 +81,9 @@ function Dashboard() {
     const atrasados = payments.filter((p) => p.status !== "pago" && p.due_date < today).length;
     const pendentes = payments.length - pagos - atrasados;
     const statusData = [
-      { name: "Pagas", value: pagos, color: "hsl(var(--success))" },
-      { name: "Pendentes", value: pendentes, color: "hsl(var(--primary))" },
-      { name: "Vencidas", value: atrasados, color: "hsl(var(--destructive))" },
+      { name: "Pagas", value: pagos, color: "var(--success)" },
+      { name: "Pendentes", value: pendentes, color: "var(--primary)" },
+      { name: "Vencidas", value: atrasados, color: "var(--destructive)" },
     ].filter((d) => d.value > 0);
 
     return { revenue, statusData };
@@ -144,21 +144,21 @@ function Dashboard() {
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={charts.revenue}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                <XAxis dataKey="mes" tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
-                <YAxis tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" width={60} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                <XAxis dataKey="mes" tick={{ fontSize: 12 }} stroke="var(--muted-foreground)" />
+                <YAxis tick={{ fontSize: 12 }} stroke="var(--muted-foreground)" width={60} />
                 <Tooltip
                   formatter={(v: number) => brl(Number(v))}
                   contentStyle={{
-                    background: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
+                    background: "var(--card)",
+                    border: "1px solid var(--border)",
                     borderRadius: 8,
                     fontSize: 12,
                   }}
                 />
                 <Legend wrapperStyle={{ fontSize: 12 }} />
-                <Bar dataKey="Recebido" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="Pendente" fill="hsl(var(--muted-foreground))" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="Recebido" fill="var(--primary)" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="Pendente" fill="var(--muted-foreground)" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -189,8 +189,8 @@ function Dashboard() {
                   </Pie>
                   <Tooltip
                     contentStyle={{
-                      background: "hsl(var(--card))",
-                      border: "1px solid hsl(var(--border))",
+                      background: "var(--card)",
+                      border: "1px solid var(--border)",
                       borderRadius: 8,
                       fontSize: 12,
                     }}
