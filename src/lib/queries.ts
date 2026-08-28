@@ -2,13 +2,49 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Payment, Person, PersonCategory } from "@/lib/types";
+import { MONTHLY_FEE } from "@/lib/types";
 
 export const queryKeys = {
   people: ["people"] as const,
   peopleByCategory: (cat: PersonCategory) => ["people", cat] as const,
   payments: ["payments"] as const,
   paymentsByPerson: (id: string) => ["payments", "person", id] as const,
+  feeSettings: ["fee_settings"] as const,
 };
+
+export interface FeeSetting {
+  id: string;
+  category: PersonCategory;
+  amount: number;
+}
+
+export function useFeeSettings() {
+  return useQuery({
+    queryKey: queryKeys.feeSettings,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("fee_settings")
+        .select("*")
+        .order("category");
+      if (error) throw error;
+      return (data ?? []) as FeeSetting[];
+    },
+    staleTime: 1000 * 60,
+  });
+}
+
+export function useFeeMap() {
+  const { data = [], ...rest } = useFeeSettings();
+  const map: Record<PersonCategory, number> = {
+    aluno: MONTHLY_FEE,
+    socio: MONTHLY_FEE,
+    metodo: MONTHLY_FEE,
+  };
+  data.forEach((f) => {
+    map[f.category] = Number(f.amount);
+  });
+  return { fees: map, ...rest };
+}
 
 export function usePeople() {
   return useQuery({
@@ -86,9 +122,13 @@ export function useInvalidateData() {
     invalidatePayments: () => {
       qc.invalidateQueries({ queryKey: ["payments"] });
     },
+    invalidateFees: () => {
+      qc.invalidateQueries({ queryKey: ["fee_settings"] });
+    },
     invalidateAll: () => {
       qc.invalidateQueries({ queryKey: ["people"] });
       qc.invalidateQueries({ queryKey: ["payments"] });
+      qc.invalidateQueries({ queryKey: ["fee_settings"] });
     },
   };
 }
@@ -111,6 +151,11 @@ export function useRealtimeSync() {
         "postgres_changes",
         { event: "*", schema: "public", table: "payments" },
         () => qc.invalidateQueries({ queryKey: ["payments"] }),
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "fee_settings" },
+        () => qc.invalidateQueries({ queryKey: ["fee_settings"] }),
       )
       .subscribe();
 

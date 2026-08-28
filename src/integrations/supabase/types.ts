@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      fee_settings: {
+        Row: {
+          amount: number
+          category: Database["public"]["Enums"]["person_category"]
+          created_at: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          category: Database["public"]["Enums"]["person_category"]
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          category?: Database["public"]["Enums"]["person_category"]
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           amount: number

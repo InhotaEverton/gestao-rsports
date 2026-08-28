@@ -4,7 +4,7 @@ import { PageHeader, PaymentStatusBadge } from "@/components/PeopleManager";
 import { useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Person, Payment, PersonCategory, PaymentStatus } from "@/lib/types";
-import { CATEGORY_LABELS, MONTHLY_FEE } from "@/lib/types";
+import { CATEGORY_LABELS } from "@/lib/types";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { brl, competenceLabel, formatDate, todayISO } from "@/lib/format";
-import { usePeople, usePayments, useInvalidateData } from "@/lib/queries";
+import { usePeople, usePayments, useInvalidateData, useFeeMap } from "@/lib/queries";
 
 const addDaysISO = (n: number) => {
   const d = new Date();
@@ -30,7 +30,7 @@ const monthEndISO = () => {
   const d = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0);
   return d.toISOString().slice(0, 10);
 };
-import { Loader2, CheckCircle2, Plus, Filter } from "lucide-react";
+import { Loader2, CheckCircle2, Plus, Filter, TrendingUp, Pencil } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/mensalidades")({
@@ -67,6 +67,113 @@ function PaymentsPage() {
   });
   const [genCategory, setGenCategory] = useState<"todas" | PersonCategory>("todas");
   const [generating, setGenerating] = useState(false);
+
+  // Reajuste de valores
+  const { fees } = useFeeMap();
+  const { invalidateFees } = useInvalidateData();
+  const [adjOpen, setAdjOpen] = useState(false);
+  const [adjValues, setAdjValues] = useState<Record<PersonCategory, string>>({
+    aluno: "", socio: "", metodo: "",
+  });
+  const [adjApplyOpen, setAdjApplyOpen] = useState(true);
+  const [adjFrom, setAdjFrom] = useState(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+  });
+  const [savingAdj, setSavingAdj] = useState(false);
+
+  // Edição de valor individual
+  const [editing, setEditing] = useState<Payment | null>(null);
+  const [editAmount, setEditAmount] = useState("");
+  const [savingEdit, setSavingEdit] = useState(false);
+
+  const openAdjust = () => {
+    setAdjValues({
+      aluno: String(fees.aluno),
+      socio: String(fees.socio),
+      metodo: String(fees.metodo),
+    });
+    setAdjOpen(true);
+  };
+
+  const saveAdjust = async () => {
+    const cats: PersonCategory[] = ["aluno", "socio", "metodo"];
+    const parsed = cats.map((c) => ({ c, v: Number(String(adjValues[c]).replace(",", ".")) }));
+    if (parsed.some((p) => !Number.isFinite(p.v) || p.v <= 0)) {
+      toast.error("Informe valores válidos para todas as categorias");
+      return;
+    }
+    setSavingAdj(true);
+    for (const { c, v } of parsed) {
+      const { error } = await supabase
+        .from("fee_settings")
+        .update({ amount: v })
+        .eq("category", c);
+      if (error) {
+        setSavingAdj(false);
+        toast.error(error.message);
+        return;
+      }
+    }
+
+    let updated = 0;
+    if (adjApplyOpen) {
+      for (const { c, v } of parsed) {
+        const ids = payments
+          .filter((pay) => {
+            const person = personById.get(pay.person_id);
+            return (
+              person?.category === c &&
+              pay.status !== "pago" &&
+              pay.competence >= adjFrom &&
+              Number(pay.amount) !== v
+            );
+          })
+          .map((pay) => pay.id);
+        if (ids.length === 0) continue;
+        const { error } = await supabase.from("payments").update({ amount: v }).in("id", ids);
+        if (error) {
+          setSavingAdj(false);
+          toast.error(error.message);
+          return;
+        }
+        updated += ids.length;
+      }
+    }
+
+    setSavingAdj(false);
+    setAdjOpen(false);
+    invalidateFees();
+    invalidatePayments();
+    toast.success(
+      adjApplyOpen
+        ? `Valores reajustados · ${updated} mensalidade(s) em aberto atualizadas`
+        : "Valores reajustados",
+    );
+  };
+
+  const openEdit = (p: Payment) => {
+    setEditing(p);
+    setEditAmount(String(Number(p.amount)));
+  };
+
+  const saveEdit = async () => {
+    if (!editing) return;
+    const v = Number(String(editAmount).replace(",", "."));
+    if (!Number.isFinite(v) || v <= 0) {
+      toast.error("Informe um valor válido");
+      return;
+    }
+    setSavingEdit(true);
+    const { error } = await supabase.from("payments").update({ amount: v }).eq("id", editing.id);
+    setSavingEdit(false);
+    if (error) toast.error(error.message);
+    else {
+      toast.success("Valor atualizado");
+      setEditing(null);
+      invalidatePayments();
+    }
+  };
 
   const personById = useMemo(() => {
     const m = new Map<string, Person>();
@@ -154,7 +261,7 @@ function PaymentsPage() {
         return {
           person_id: p.id,
           competence: genCompetence,
-          amount: MONTHLY_FEE,
+          amount: fees[p.category],
           due_date: due,
           status: "pendente" as const,
         };
@@ -179,9 +286,14 @@ function PaymentsPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
         <PageHeader title="Mensalidades" description="Controle financeiro unificado." />
-        <Button onClick={() => setGenOpen(true)} className="gap-2">
-          <Plus className="h-4 w-4" /> Gerar mensalidades
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" onClick={openAdjust} className="gap-2">
+            <TrendingUp className="h-4 w-4" /> Reajustar valores
+          </Button>
+          <Button onClick={() => setGenOpen(true)} className="gap-2">
+            <Plus className="h-4 w-4" /> Gerar mensalidades
+          </Button>
+        </div>
       </div>
 
       <Card className="p-4 sm:p-5 space-y-4">
@@ -321,11 +433,16 @@ function PaymentsPage() {
                           {pay.payment_date ? `${formatDate(pay.payment_date)} · ${pay.payment_method ?? "—"}` : "—"}
                         </td>
                         <td className="px-4 py-3 text-right">
-                          {pay.status !== "pago" && (
-                            <Button size="sm" variant="outline" onClick={() => openPay(pay)} className="gap-1">
-                              <CheckCircle2 className="h-3.5 w-3.5" /> Pagar
+                          <div className="flex items-center justify-end gap-2">
+                            <Button size="sm" variant="ghost" onClick={() => openEdit(pay)} className="gap-1">
+                              <Pencil className="h-3.5 w-3.5" /> Valor
                             </Button>
-                          )}
+                            {pay.status !== "pago" && (
+                              <Button size="sm" variant="outline" onClick={() => openPay(pay)} className="gap-1">
+                                <CheckCircle2 className="h-3.5 w-3.5" /> Pagar
+                              </Button>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     );
@@ -351,11 +468,16 @@ function PaymentsPage() {
                       <span className="text-muted-foreground">Vence {formatDate(pay.due_date)}</span>
                       <span className="font-bold">{brl(Number(pay.amount))}</span>
                     </div>
-                    {pay.status !== "pago" && (
-                      <Button size="sm" variant="outline" className="w-full gap-1" onClick={() => openPay(pay)}>
-                        <CheckCircle2 className="h-3.5 w-3.5" /> Registrar pagamento
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="ghost" className="flex-1 gap-1" onClick={() => openEdit(pay)}>
+                        <Pencil className="h-3.5 w-3.5" /> Alterar valor
                       </Button>
-                    )}
+                      {pay.status !== "pago" && (
+                        <Button size="sm" variant="outline" className="flex-1 gap-1" onClick={() => openPay(pay)}>
+                          <CheckCircle2 className="h-3.5 w-3.5" /> Pagar
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 );
               })}
@@ -405,13 +527,93 @@ function PaymentsPage() {
         </DialogContent>
       </Dialog>
 
+      {/* Adjust values dialog */}
+      <Dialog open={adjOpen} onOpenChange={setAdjOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reajustar valores</DialogTitle>
+            <DialogDescription>
+              Defina o novo valor da mensalidade por categoria. O valor passa a valer para as próximas mensalidades geradas.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            {(["aluno", "socio", "metodo"] as PersonCategory[]).map((c) => (
+              <div key={c} className="space-y-2">
+                <Label>{CATEGORY_LABELS[c]} — valor atual {brl(fees[c])}</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={adjValues[c]}
+                  onChange={(e) => setAdjValues((v) => ({ ...v, [c]: e.target.value }))}
+                />
+              </div>
+            ))}
+            <div className="rounded-lg border border-border p-3 space-y-3">
+              <label className="flex items-start gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  className="mt-1"
+                  checked={adjApplyOpen}
+                  onChange={(e) => setAdjApplyOpen(e.target.checked)}
+                />
+                <span>Aplicar também nas mensalidades em aberto (pendentes/atrasadas)</span>
+              </label>
+              {adjApplyOpen && (
+                <div className="space-y-2">
+                  <Label>A partir da competência</Label>
+                  <Input type="month" value={adjFrom} onChange={(e) => setAdjFrom(e.target.value)} />
+                  <p className="text-xs text-muted-foreground">
+                    Mensalidades já pagas não são alteradas.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAdjOpen(false)}>Cancelar</Button>
+            <Button onClick={saveAdjust} disabled={savingAdj}>
+              {savingAdj ? <Loader2 className="h-4 w-4 animate-spin" /> : "Salvar reajuste"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit single amount dialog */}
+      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Alterar valor da mensalidade</DialogTitle>
+            <DialogDescription>
+              {editing && personById.get(editing.person_id)?.full_name} — {editing && competenceLabel(editing.competence)}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label>Valor (R$)</Label>
+            <Input
+              type="number"
+              min="0"
+              step="0.01"
+              value={editAmount}
+              onChange={(e) => setEditAmount(e.target.value)}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditing(null)}>Cancelar</Button>
+            <Button onClick={saveEdit} disabled={savingEdit}>
+              {savingEdit ? <Loader2 className="h-4 w-4 animate-spin" /> : "Salvar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Generate dialog */}
       <Dialog open={genOpen} onOpenChange={setGenOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Gerar mensalidades em lote</DialogTitle>
             <DialogDescription>
-              Cria mensalidades de {brl(MONTHLY_FEE)} para todos os cadastros ativos da seleção.
+              Cria mensalidades com o valor atual de cada categoria (Alunos {brl(fees.aluno)} · Sócios {brl(fees.socio)} · Métodos {brl(fees.metodo)}).
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
